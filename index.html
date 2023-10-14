@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Préference de Divertissement</title>
+    <script src="assets/js/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f6f7;
+            margin: 0;
+            padding: 0;
+        }
+        #main {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .divs {
+            background-color: #fff;
+            border: 1px solid #e4e4e4;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 30%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .divs .content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .divs .content li:not(:last-child) {
+            margin-bottom: 10px;
+        }
+
+        .divs .image {
+            width: 30%;
+            text-align: right;
+        }
+
+        .divs .image img {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .navbar {
+            background-color: #205992;
+            overflow: hidden;
+            padding: 10px 20px;
+            box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .navbar a:hover {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .navbar a.active {
+            background-color: #2980b9;
+            color: white;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <p>Si rien ne s'affcihe lancer la démo de Cors Anywhere <a href="https://cors-anywhere.herokuapp.com/corsdemo">lien</a></p>
+    <div class="navbar">
+        <a href="./index.html">Accueil</a>
+        <a href="./graph.html">Graphique</a>
+    </div>
+    <div id="main"></div>
+
+    <script>
+        let corsAnywhere = "https://cors-anywhere.herokuapp.com/";
+        let url2 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRVf-7EV1M3RPjQ2h4rb6QGSJArT9Yp_OA-AoX-h0U0fFQ6l_DDgXeOFhtj10HcH_L8ULAS2a_wAEvU/pub?output=csv";
+        let url = corsAnywhere + url2;
+
+        // Charger les données CSV depuis une URL
+        d3.csv(url).then(data => {
+            // Sélectionner l'élément avec l'ID "main", lier les données, et créer des divs pour chaque entrée 
+            let divs = d3.select('#main')
+                        .selectAll('div.divs')
+                        .data(data)
+                        .enter()
+                        .append('div')
+                        .attr('class', 'divs');  // Ajout de la classe 'divs' pour le style 
+
+            // Pour chaque div créé, ajouter un conteneur 
+            let contentList = divs.append('div')
+                                .attr('class', 'content')  // Ajout de la classe 'content' pour le style 
+                                .append('ul');  // Utilisation d'une liste pour structurer le contenu
+
+            // Ajouter le nom 
+            contentList.append('li')
+                    .attr('class', 'name')  // Classe 'name' pour le style 
+                    .append('h1')
+                    .text(d => d['Nom']);
+
+            // Ajouter l'âge 
+            contentList.append('li')
+                    .attr('class', 'age')  // Ajout de la classe 'age' pour le style 
+                    .text(d => `Age: ${d['Age']}`);
+
+            // Ajouter le divertissement favori 
+            contentList.append('li')
+                    .attr('class', 'divertissement')  // Ajout de la classe 'divertissement' pour le style 
+                    .text(d => `Divertissement favori: ${d['Divertissement favori']}`);
+
+            // Ajouter une image à la div basée sur l'URL du drive
+            divs.append('div')
+                .attr('class', 'image')  // Ajout de la classe 'image' pour le style 
+                .append('img')
+                .attr('src', function (d) {
+                    // Extraire l'ID de l'image depuis l'URL
+                    const url = new URL(d['Inséré votre œuvre préféré']);
+                    const urlParam = new URLSearchParams(url.search);
+                    const id = urlParam.get('id');
+                    return `https://drive.google.com/uc?id=${id}&export=download`;  // Construire l'URL pour l'image
+                })
+                .attr('alt', 'Image');  // Attribut alt pour l'accessibilité
+        });
+
+
+        
+
+        
+    </script>
+</body>
+</html>

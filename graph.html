@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphique de Divertissement</title>
+    <script src="assets/js/d3.v7.min.js"></script>
+    <style>
+     body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f6f7;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar {
+    background-color: #205992;
+    overflow: hidden;
+    padding: 10px 20px;
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar a {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.navbar a:hover {
+    background-color: #3498db;
+    color: white;
+}
+
+.navbar a.active {
+    background-color: #2980b9;
+    color: white;
+}
+
+#age-chart, #divertissement-chart {
+    width: 45%; /* Utilisez une largeur en pourcentage pour le responsive */
+    display: inline-block;
+    vertical-align: top; /* aligne les éléments verticalement */
+    margin: 2% 2.5%; /* espacement entre les graphiques */
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+svg {
+    display: block;
+    margin: 0 auto;
+}
+
+.arc text {
+    font-size: 12px; 
+    font-weight: bold; 
+    fill: #2c3e50; 
+}
+.charts-container {
+        display: flex;           /* Flexbox */
+        justify-content: center; /* Centrage horizontal des éléments */
+        gap: 20px;               
+    }
+</style>
+</head>
+
+<body>
+    <p>Si rien ne s'affcihe lancer la démo de Cors Anywhere <a href="https://cors-anywhere.herokuapp.com/corsdemo">lien</a></p>
+    <div class="navbar">
+        <a href="./index.html">Accueil</a>
+        <a href="./graph.html">Graphique</a>
+    </div>
+    <div class="charts-container"> <!-- Conteneur pour les deux graphiques -->
+        <div id="age-chart"><h1>Graphique de l'Age</h1></div>
+        <div id="divertissement-chart"><h1>Graphique des Divertissement</h1></div>
+    </div>
+
+    <script>
+        
+        let corsAnywhere = "https://cors-anywhere.herokuapp.com/";
+        let url2 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRVf-7EV1M3RPjQ2h4rb6QGSJArT9Yp_OA-AoX-h0U0fFQ6l_DDgXeOFhtj10HcH_L8ULAS2a_wAEvU/pub?output=csv";
+        let url = corsAnywhere + url2;
+
+        d3.csv(url).then(data => {
+            let ageData = d3.rollup(data, v => v.length, d => d['Age']);
+            let divertissementData = d3.rollup(data, v => v.length, d => d['Divertissement favori']);
+
+            createDonutChart(Array.from(ageData), 'Age', 'age-chart');
+            createDonutChart(Array.from(divertissementData), 'Divertissement favori', 'divertissement-chart');
+        });
+        //Merci à https://d3-graph-gallery.com/donut.html
+        /**
+         * Crée un graphique en forme de donut pour des données spécifiques.
+         * 
+         * @param {Array} data - Les données à afficher.
+         * @param {String} key - La clé des données (Age ou Divertissement favori).
+         * @param {String} containerId - L'ID de l'élément DOM où le graphique sera affiché.
+         */
+        function createDonutChart(data, key, containerId) {
+            // Définit les dimensions du graphique
+            const width = 400;
+            const height = 400;
+            const radius = Math.min(width, height) / 2 - 10;
+
+            // Crée une échelle de couleur basée sur la clé des données
+            let color;
+            if (key === 'Age') {
+                color = d3.scaleOrdinal(d3.schemeCategory10);
+            } else {
+                color = d3.scaleOrdinal()
+                    .domain(["Film", "Animé", "Série"])
+                    .range(["#E63946", "#F1FAEE", "#A8DADC"]);
+            }
+
+            // Définit l'arc du graphique donut
+            const arc = d3.arc()
+                .innerRadius(radius * 0.67)
+                .outerRadius(radius);
+
+            // Génère le graphique en forme de donut à partir des données
+            const pie = d3.pie()
+                .sort(null)
+                .value(d => d[1]);
+
+            // Crée le SVG pour le graphique dans l'élément DOM spécifié
+            const svg = d3.select("#" + containerId).append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+            // Lie les données à des éléments graphiques et ajoute des arcs
+            const g = svg.selectAll(".arc")
+                .data(pie(data))
+                .enter().append("g")
+                .attr("class", "arc");
+
+            // Dessine chaque segment du graphique
+            g.append("path")
+                .attr("d", arc)
+                .style("fill", d => color(d.data[0]));
+
+            // Ajoute du texte au centre de chaque segment pour indiquer la valeur
+            g.append("text")
+                .attr("transform", d => "translate(" + arc.centroid(d) + ")")
+                .attr("dy", ".35em")
+                .text(d => d.data[0]);
+        }
+
+
+    </script>
+
+</body>
+
+</html>
